@@ -51,5 +51,23 @@ export const authService = {
       data: responseData,
       status: response.status
     }
+  },
+
+  async changePassword(data) {
+    const response = await fetch(`${API_URL}users/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(data)
+    })
+
+    const responseData = await response.json()
+
+    return {
+      data: responseData,
+      status: response.status
+    }
   }
 }

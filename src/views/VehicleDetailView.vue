@@ -138,7 +138,7 @@
           </div>
         </div>
 
-        <!-- Add Vehicle Modal -->
+        <!-- Edit Vehicle Modal -->
         <div
           v-if="showEditVehicleModal"
           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -294,7 +294,7 @@ export default {
           vehicle.value.latitude = lastPosition.latitude
           vehicle.value.longitude = lastPosition.longitude
         }
-      } catch (error) {
+      } catch {
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -345,8 +345,6 @@ export default {
 
         vehicle.value.latitude = coordinates.value.latitude
         vehicle.value.longitude = coordinates.value.longitude
-        coordinates.value.latitude = coordinates.value.latitude
-        coordinates.value.longitude = coordinates.value.longitude
 
         Swal.fire({
           icon: 'success',

@@ -59,3 +59,18 @@ pnpm-lock.yaml
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettiercache
+
+# Vite
+.vite
+
+# TypeScript
+*.tsbuildinfo
+
+# Vitest
+.vitest

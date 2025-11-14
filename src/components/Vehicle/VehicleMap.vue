@@ -101,3 +101,15 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* Asegurar que el mapa tenga un z-index bajo */
+:deep(.leaflet-container) {
+  z-index: 1;
+}
+
+/* Asegurar que los controles del mapa también tengan z-index bajo */
+:deep(.leaflet-control-container) {
+  z-index: 1;
+}
+</style>

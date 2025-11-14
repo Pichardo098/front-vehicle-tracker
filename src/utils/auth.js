@@ -30,7 +30,7 @@ export const decodeToken = token => {
         .join('')
     )
     return JSON.parse(jsonPayload)
-  } catch (error) {
+  } catch {
     return null
   }
 }

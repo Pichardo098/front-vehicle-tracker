@@ -14,6 +14,7 @@ Funcionalidades por Rol
 
 - Usuario Normal
 
+✅ Cambiar su contraseña  
 ✅ Crear vehículos  
 ✅ Ver sus propios vehículos  
 ✅ Ver detalles completos de cada vehículo.  
@@ -25,8 +26,10 @@ Funcionalidades por Rol
   Además de todas las funcionalidades del usuario normal:
 
 ✅ Crear nuevos usuarios  
+✅ Ver listado de usuarios  
+✅ Crear vehiculos para otros usuarios  
 ✅ Ver todos los vehículos del sistema  
-✅ Filtrado avanzado de vehículos
+✅ Filtrado de vehículos
 
 ### Seguimiento en Tiempo Real
 

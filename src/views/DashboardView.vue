@@ -3,28 +3,36 @@
     <div class="container mx-auto px-4 py-8">
       <!-- Título y botón agregar -->
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-gray-800">
+        <h2 v-if="viewUsers" class="text-3xl font-bold text-gray-800">Todos los Usuarios</h2>
+        <h2 v-if="!viewUsers" class="text-3xl font-bold text-gray-800">
           {{ isAdmin ? 'Todos los Vehículos' : 'Mis Vehículos' }}
         </h2>
-        <div class="flex flex-row gap-4">
+        <div class="flex flex-row flex-wrap gap-4 justify-end">
           <button
             v-if="isAdmin"
-            @click="showAddUserModal = true"
+            @click="handleViewUsers()"
             class="bg-blue-600 hover:bg-blue-800 text-white rounded-lg px-6 py-2 transition-colors"
           >
-            + Agregar Usuarios
+            {{ viewUsers ? '+ Agregar Usuarios' : 'Ver usuarios' }}
           </button>
           <button
-            @click="showAddVehicleModal = true"
+            @click="handleViewVehicles()"
             class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
           >
-            + Agregar Vehículo
+            {{ viewUsers ? 'Ver Vehículos' : '+ Agregar Vehículo' }}
+          </button>
+          <button
+            @click="showChangePasswordModal = true"
+            class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            title="Cambiar contraseña"
+          >
+            <span>Cambiar Contraseña</span>
           </button>
         </div>
       </div>
 
       <!-- Users Filter (only admin) -->
-      <div v-if="isAdmin" class="mb-6">
+      <div v-if="isAdmin && !viewUsers" class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por usuario:</label>
         <select
           v-model="selectedUserId"
@@ -42,11 +50,14 @@
         <p class="text-gray-500">Cargando vehículos...</p>
       </div>
 
-      <div v-else-if="filteredVehicles.length === 0" class="text-center py-12">
+      <div v-else-if="filteredVehicles.length === 0 && !viewUsers" class="text-center py-12">
         <p class="text-gray-500 text-lg">No tienes vehículos registrados</p>
       </div>
 
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-else-if="filteredVehicles.length > 0 && !viewUsers"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div
           v-for="vehicle in filteredVehicles"
           :key="vehicle.id"
@@ -87,6 +98,111 @@
           <div class="mt-4 pt-4 border-t border-gray-200">
             <p class="text-sm text-gray-500">Click para ver detalles</p>
           </div>
+        </div>
+      </div>
+
+      <div v-else-if="viewUsers" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-for="user in usersToCreateVehicles"
+          :key="user.id"
+          class="rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer p-6"
+          :class="isCurrentUser(user.id) ? 'bg-green-300 text-white' : 'bg-white'"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-800">
+              {{ user.fullName }}
+            </h3>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-8 w-8 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <p v-if="isAdmin" class="text-gray-600">
+            <span class="font-semibold">Correo:</span> {{ user.email }}
+          </p>
+          <p class="text-gray-600">
+            <span class="font-semibold">Es admin:</span> {{ user.admin ? 'SI' : 'NO' }}
+          </p>
+          <p v-if="user?.createdAt" class="text-gray-600">
+            <span class="font-semibold">Fecha de Creación:</span>
+            {{
+              `${new Date(user?.createdAt).getDate()}/${new Date(user?.createdAt).getMonth()}/${new Date(user?.createdAt).getFullYear()}`
+            }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Change Password Modal -->
+      <div
+        v-if="showChangePasswordModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+          <h2 class="text-2xl font-bold mb-4">Cambiar Contraseña</h2>
+          <form @submit.prevent="handleSubmitChangePassword" class="space-y-4">
+            <!-- Old Password -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Antigua Contraseña</label>
+              <input
+                v-model="formChangePassword.password"
+                type="password"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="••••••••"
+              />
+            </div>
+            <!-- New Password -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Nueva Contraseña</label>
+              <input
+                v-model="formChangePassword.newPassword"
+                type="password"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="••••••••"
+              />
+            </div>
+            <!-- Confirma New Password -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Confirma Nueva Contraseña</label
+              >
+              <input
+                v-model="formChangePassword.confirmPassword"
+                type="password"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="••••••••"
+              />
+            </div>
+            <!-- Botón Submit -->
+            <div class="flex justify-center gap-4 mt-6">
+              <button
+                type="submit"
+                :disabled="loading"
+                class="w-fit bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+              >
+                Cambiar Contraseña
+              </button>
+              <button
+                type="button"
+                @click="closeChangePasswordModal"
+                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -215,7 +331,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
               <select
                 v-model="formData.user_id"
-                class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option v-for="user in usersToCreateVehicles" :key="user.id" :value="user.id">
                   {{ user.fullName }}
@@ -316,11 +432,137 @@ export default {
     const vehicles = ref([])
     const users = ref([])
     const usersToCreateVehicles = ref([])
+    const viewUsers = ref(false)
     const selectedUserId = ref(null)
     const showAddVehicleModal = ref(false)
     const showAddUserModal = ref(false)
     const isAdmin = computed(() => userStore.isAdmin)
     const sessionUserId = computed(() => userStore.userData.id)
+
+    const isCurrentUser = userId => {
+      return userId === sessionUserId.value
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/
+    const validatePassword = password => {
+      return passwordRegex.test(password)
+    }
+
+    const handleViewUsers = () => {
+      if (viewUsers.value) {
+        showAddUserModal.value = true
+        return
+      }
+
+      viewUsers.value = !viewUsers.value
+    }
+
+    const handleViewVehicles = () => {
+      if (viewUsers.value) {
+        viewUsers.value = false
+        return
+      }
+      showAddVehicleModal.value = true
+    }
+
+    // ---------- Function to change password ---------- //
+    const showChangePasswordModal = ref(false)
+    const formChangePassword = ref({
+      password: '',
+      newPassword: '',
+      confirmPassword: ''
+    })
+
+    const closeChangePasswordModal = () => {
+      showChangePasswordModal.value = false
+      formChangePassword.value = {
+        password: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+    }
+
+    const comparePassword = (password, newPassword, confirmPassword) => {
+      if (password === newPassword) {
+        return {
+          status: false,
+          message: 'La nueva contraseña debe ser diferente a la actual.'
+        }
+      }
+
+      if (newPassword !== confirmPassword) {
+        return {
+          status: false,
+          message: 'La confirmación no coincide.'
+        }
+      }
+
+      return {
+        status: true,
+        message: 'Contraseña válida.'
+      }
+    }
+
+    const handleSubmitChangePassword = async () => {
+      loading.value = true
+
+      if (!validatePassword(formChangePassword.value.newPassword)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'La nueva debe tener al menos 6 caracteres, una letra mayúscula, un número y un carácter especial.'
+        })
+        loading.value = false
+        return
+      }
+
+      const validateCompare = comparePassword(
+        formChangePassword.value.password,
+        formChangePassword.value.newPassword,
+        formChangePassword.value.confirmPassword
+      )
+
+      if (!validateCompare.status) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: validateCompare.message
+        })
+        loading.value = false
+        return
+      }
+
+      try {
+        const payload = {
+          oldPassword: formChangePassword.value.password,
+          newPassword: formChangePassword.value.newPassword
+        }
+
+        const response = await authService.changePassword(payload)
+
+        if (!response.status.toString().startsWith('2')) {
+          throw new Error(response.data.message || 'Error en la solicitud')
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Éxito!',
+          text: response.data.message,
+          timer: 2000,
+          showConfirmButton: false
+        })
+
+        closeChangePasswordModal()
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        })
+      } finally {
+        loading.value = false
+      }
+    }
 
     // ---------- Function to get all Users ---------- //
     const loadUsers = async () => {
@@ -379,11 +621,6 @@ export default {
       return true
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/
-    const validatePassword = () => {
-      return passwordRegex.test(formData.value.password)
-    }
-
     // Function to create a new user
     const handleSubmitCreateUser = async () => {
       loading.value = true
@@ -398,7 +635,7 @@ export default {
         return
       }
 
-      if (!validatePassword()) {
+      if (!validatePassword(formData.value.password)) {
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -524,7 +761,7 @@ export default {
       try {
         const getVehiclesResponse = await vehiclesService.getVehicles()
 
-        const getUsers = await loadUsers()
+        await loadUsers()
 
         const vehiclesData = getVehiclesResponse.data.vehicles || []
 
@@ -574,10 +811,12 @@ export default {
       users,
       usersToCreateVehicles,
       selectedUserId,
+      isCurrentUser,
       isAdmin,
       filteredVehicles,
       goToVehicleDetail,
       // Handle Add Vehicle
+      handleViewVehicles,
       showAddVehicleModal,
       formData,
       handleSubmit,
@@ -586,7 +825,15 @@ export default {
       showAddUserModal,
       handleSubmitCreateUser,
       formUserData,
-      closeUserModal
+      closeUserModal,
+      // View users
+      handleViewUsers,
+      viewUsers,
+      // Handle Change Password
+      showChangePasswordModal,
+      formChangePassword,
+      handleSubmitChangePassword,
+      closeChangePasswordModal
     }
   }
 }
