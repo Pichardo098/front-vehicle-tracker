@@ -40,6 +40,8 @@ Funcionalidades por Rol
 
 ### Tecnologías Utilizadas
 
+- Node.js (v24.11.1)
+
 Frontend
 
 Vue 3 - Framework principal  
